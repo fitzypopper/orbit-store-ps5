@@ -1,24 +1,36 @@
-import { useEffect, useRef, useState, type ImgHTMLAttributes } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ImgHTMLAttributes,
+} from "react";
 import { watchArtwork } from "./artworkVisibility";
 
 type Props = Omit<
   ImgHTMLAttributes<HTMLImageElement>,
-  "src" | "loading" | "fetchPriority" | "onError"
+  "src" | "loading" | "fetchPriority" | "onError" | "onLoad"
 > & {
   src: string;
   fallbackSrc?: string | null;
   priority?: boolean;
 };
+
 export function Artwork(props: Props) {
   // A catalogue update starts a fresh attempt, even when this tile stays mounted.
   return (
-    <ArtworkImage key={`${props.src}\n${props.fallbackSrc || ""}`} {...props} />
+    <ArtworkImage
+      key={`${props.src}\n${props.fallbackSrc || ""}`}
+      {...props}
+    />
   );
 }
+
 function ArtworkImage({ src, fallbackSrc, priority = false, ...props }: Props) {
   const ref = useRef<HTMLImageElement>(null);
   const [visible, setVisible] = useState(priority);
   const [attempt, setAttempt] = useState(0);
+  // Fade the cover in once it has actually decoded, instead of popping.
+  const [loaded, setLoaded] = useState(false);
   const sources = [
     ...new Set(
       [src, fallbackSrc, "/orbit.svg"].filter((url): url is string => !!url),
@@ -36,9 +48,15 @@ function ArtworkImage({ src, fallbackSrc, priority = false, ...props }: Props) {
       src={load ? sources[attempt] : undefined}
       loading="eager"
       fetchPriority={priority ? "high" : "auto"}
-      onError={() =>
-        setAttempt((current) => Math.min(current + 1, sources.length - 1))
-      }
+      data-loaded={loaded ? "" : undefined}
+      onLoad={() => setLoaded(true)}
+      onError={() => {
+        // A failed source advances to the next fallback; the last one is the
+        // bundled orbit mark and stays put. The placeholder shows meanwhile.
+        if (attempt + 1 >= sources.length) return;
+        setLoaded(false);
+        setAttempt(attempt + 1);
+      }}
     />
   );
 }
