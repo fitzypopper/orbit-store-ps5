@@ -6,7 +6,7 @@
 import { forwardRef, type HTMLAttributes } from 'react';
 import { tokens } from '../../tokens';
 
-interface CardProps extends HTMLAttributes<HTMLDivElement> {
+export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'elevated' | 'glass' | 'interactive' | 'outlined';
   padding?: 'none' | 'sm' | 'md' | 'lg';
   hoverable?: boolean;

@@ -8,7 +8,7 @@ import { createPortal } from 'react-dom';
 import { tokens } from '../../tokens';
 import { Button } from './Button';
 
-interface ModalProps {
+export interface ModalProps {
   open: boolean;
   onClose: () => void;
   title?: string;

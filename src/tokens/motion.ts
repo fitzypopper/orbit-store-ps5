@@ -174,45 +174,46 @@ export const transition = {
   image: `opacity ${duration.slow}ms ${easing.easeOut}`,
 } as const;
 
-// Animation presets (combining keyframes + duration + easing)
+// Animation presets (combining keyframe + duration + easing).
+// Keyframes are declared in tokens.css; names are prefixed `orbit-`.
 export const animation = {
   // Entrance
-  fadeIn: `${keyframes.fadeIn} ${duration.normal}ms ${easing.easeOut}`,
-  fadeInFast: `${keyframes.fadeIn} ${duration.fast}ms ${easing.easeOut}`,
-  fadeInSlow: `${keyframes.fadeIn} ${duration.slow}ms ${easing.easeOut}`,
-  
-  scaleIn: `${keyframes.scaleIn} ${duration.normal}ms ${easing.springGentle}`,
-  scaleInFast: `${keyframes.scaleIn} ${duration.fast}ms ${easing.spring}`,
-  
-  slideUp: `${keyframes.slideUp} ${duration.normal}ms ${easing.easeOut}`,
-  slideDown: `${keyframes.slideDown} ${duration.normal}ms ${easing.easeOut}`,
-  slideLeft: `${keyframes.slideLeft} ${duration.normal}ms ${easing.easeOut}`,
-  slideRight: `${keyframes.slideRight} ${duration.normal}ms ${easing.easeOut}`,
-  
+  fadeIn: `orbit-fade-in ${duration.normal}ms ${easing.easeOut}`,
+  fadeInFast: `orbit-fade-in ${duration.fast}ms ${easing.easeOut}`,
+  fadeInSlow: `orbit-fade-in ${duration.slow}ms ${easing.easeOut}`,
+
+  scaleIn: `orbit-scale-in ${duration.normal}ms ${easing.springGentle}`,
+  scaleInFast: `orbit-scale-in ${duration.fast}ms ${easing.spring}`,
+
+  slideUp: `orbit-slide-up ${duration.normal}ms ${easing.easeOut}`,
+  slideDown: `orbit-slide-down ${duration.normal}ms ${easing.easeOut}`,
+  slideLeft: `orbit-slide-left ${duration.normal}ms ${easing.easeOut}`,
+  slideRight: `orbit-slide-right ${duration.normal}ms ${easing.easeOut}`,
+
   // Exit
-  fadeOut: `${keyframes.fadeOut} ${duration.fast}ms ${easing.easeIn}`,
-  scaleOut: `${keyframes.scaleOut} ${duration.fast}ms ${easing.easeIn}`,
-  
+  fadeOut: `orbit-fade-out ${duration.fast}ms ${easing.easeIn}`,
+  scaleOut: `orbit-scale-out ${duration.fast}ms ${easing.easeIn}`,
+
   // Interactions
-  press: `${keyframes.scalePress} ${duration.press}ms ${easing.spring}`,
-  focusPulse: `${keyframes.focusPulse} 2s ${easing.easeInOut} infinite`,
-  
+  press: `orbit-press ${duration.press}ms ${easing.spring}`,
+  focusPulse: `orbit-focus-pulse 2s ${easing.easeInOut} infinite`,
+
   // Loading
-  shimmer: `${keyframes.shimmer} ${duration.skeleton}ms ${easing.linear} infinite`,
-  spin: `${keyframes.spin} ${duration.slow}ms ${easing.linear} infinite`,
-  pulse: `${keyframes.pulse} ${duration.slowest}ms ${easing.easeInOut} infinite`,
-  
+  shimmer: `orbit-shimmer ${duration.skeleton}ms ${easing.linear} infinite`,
+  spin: `orbit-spin ${duration.slow}ms ${easing.linear} infinite`,
+  pulse: `orbit-pulse ${duration.slowest}ms ${easing.easeInOut} infinite`,
+
   // Feedback
-  bounce: `${keyframes.bounce} ${duration.normal}ms ${easing.spring}`,
-  shake: `${keyframes.shake} ${duration.normal}ms ${easing.easeInOut}`,
-  
+  bounce: `orbit-bounce ${duration.normal}ms ${easing.spring}`,
+  shake: `orbit-shake ${duration.normal}ms ${easing.easeInOut}`,
+
   // Modal
-  modalIn: `opacity ${duration.modal}ms ${easing.modalIn}, transform ${duration.modal}ms ${easing.modalIn}`,
-  modalOut: `opacity ${duration.fast}ms ${easing.modalOut}, transform ${duration.fast}ms ${easing.modalOut}`,
-  
+  modalIn: `orbit-fade-in ${duration.modal}ms ${easing.modalIn}, orbit-scale-in ${duration.modal}ms ${easing.modalIn}`,
+  modalOut: `orbit-fade-out ${duration.fast}ms ${easing.modalOut}, orbit-scale-out ${duration.fast}ms ${easing.modalOut}`,
+
   // Page
-  pageIn: `${keyframes.fadeIn} ${duration.pageTransition}ms ${easing.easeOut}, ${keyframes.slideUp} ${duration.pageTransition}ms ${easing.easeOut}`,
-  pageOut: `${keyframes.fadeOut} ${duration.fast}ms ${easing.easeIn}, ${keyframes.slideDown} ${duration.fast}ms ${easing.easeIn}`,
+  pageIn: `orbit-fade-in ${duration.pageTransition}ms ${easing.easeOut}, orbit-slide-up ${duration.pageTransition}ms ${easing.easeOut}`,
+  pageOut: `orbit-fade-out ${duration.fast}ms ${easing.easeIn}, orbit-slide-down ${duration.fast}ms ${easing.easeIn}`,
 } as const;
 
 // Reduced motion variants (respects prefers-reduced-motion)
