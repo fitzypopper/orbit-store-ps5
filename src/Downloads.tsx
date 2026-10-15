@@ -13,7 +13,15 @@ import { useInterfacePrefs } from "./interfaces/choice";
 import { CinemaDownloads } from "./interfaces/CinemaDownloads";
 import { CrossbarDownloads } from "./interfaces/CrossbarDownloads";
 import { PanoramaDownloads } from "./interfaces/PanoramaDownloads";
-import { inactive, statusLabels, waiting, type DownloadView } from "./jobs";
+import {
+  inactive,
+  progressOf,
+  running,
+  statusLabels,
+  transferTiming,
+  waiting,
+  type DownloadView,
+} from "./jobs";
 export function Downloads({
   jobs,
   games,
@@ -460,27 +468,9 @@ export function Downloads({
             const g = gameByRelease.get(j.releaseId),
               r = g?.releases.find((r) => r.id === j.releaseId);
             const title = g?.title || j.title || j.filename;
-            const active = [
-              "queued",
-              "downloading",
-              "retrying",
-              "verifying",
-              "inspecting",
-              "extracting",
-            ].includes(j.status);
-            // While extracting, progress is the extraction's.
-            const extracting = j.status === "extracting";
-            const done = extracting ? j.extracted || 0 : j.received,
-              total = extracting ? j.extractTotal || 0 : j.total;
-            const progress =
-              total > 0
-                ? Math.min(100, Math.max(0, (100 * done) / total))
-                : 0;
+            const active = running(j);
+            const { extracting, done, total, percent } = progressOf(j);
             const position = queued.findIndex((q) => q.id === j.id);
-            const seconds = Math.max(
-              0,
-              Math.ceil(j.retryAt - Date.now() / 1000),
-            );
             const drive = drives.find((d) => d.id === j.storageId);
             return (
               <article
@@ -516,38 +506,32 @@ export function Downloads({
                   </p>
                   <progress
                     max="100"
-                    value={progress}
+                    value={percent}
                     aria-label={t("{title} progress", { title })}
                   />
                   <div className="transfer-meta">
                     <span>
                       {extracting && `${t("Extracting")} · `}
                       {bytes(done)} / {bytes(total)} ·{" "}
-                      {formatNumber(progress / 100, {
+                      {formatNumber(percent / 100, {
                         style: "percent",
                         minimumFractionDigits: 1,
                         maximumFractionDigits: 1,
                       })}
                     </span>
                     <span>
-                      {j.status === "retrying"
-                        ? seconds > 0
-                          ? t("Retrying in {seconds} s", { seconds })
-                          : t("Waiting to retry…")
-                        : j.speed > 0
-                          ? t("{speed}/s · {minutes} min remaining", {
-                              speed: bytes(j.speed),
-                              minutes: Math.ceil(
-                                (total - done) / j.speed / 60,
-                              ),
-                            })
-                          : j.status === "complete"
-                            ? j.verification === "sha256"
-                              ? t("SHA-256 verified")
-                              : t("Size verified")
-                            : t("{size} remaining", {
-                                size: bytes(Math.max(0, j.total - j.received)),
-                              })}
+                      {transferTiming(
+                        j,
+                        done,
+                        total,
+                        j.status === "complete"
+                          ? j.verification === "sha256"
+                            ? t("SHA-256 verified")
+                            : t("Size verified")
+                          : t("{size} remaining", {
+                              size: bytes(Math.max(0, j.total - j.received)),
+                            }),
+                      )}
                     </span>
                   </div>
                   {j.deliveryPhase &&

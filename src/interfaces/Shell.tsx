@@ -8,6 +8,7 @@ import { bytes, type Game } from "../types";
 import type { BrowseFilters } from "../browse";
 import { CATALOG_STEP } from "../browse";
 import type { CollectionState } from "../collection";
+import { running as isRunning } from "../jobs";
 import { Backdrop, GameTile } from "../components";
 import { Artwork } from "../Artwork";
 import { formatDate, formatNumber, t, tn } from "../i18n";
@@ -86,9 +87,7 @@ const sections: { tab: Tab | "Settings"; label: string; glyph: GlyphName }[] = [
 // Live numbers for the one place each interface shows downloads.
 function useDownloadSummary(orbit: ShellProps["orbit"]) {
   return useMemo(() => {
-    const running = orbit.jobs.filter((j) =>
-      ["queued", "downloading", "retrying", "verifying", "inspecting", "extracting"].includes(j.status),
-    );
+    const running = orbit.jobs.filter(isRunning);
     const moving = running.filter((j) => j.status === "downloading");
     const total = running.reduce((n, j) => n + (j.total || 0), 0);
     const received = running.reduce((n, j) => n + Math.min(j.received || 0, j.total || 0), 0);
@@ -490,7 +489,12 @@ function PanoramaShell(props: ShellProps) {
 function cinemaFrames(props: ShellProps, games: Game[]): CinemaFrame[] {
   return games.map((g) => {
     const state = props.collectionStates.get(g.id);
-    const job = state?.job;
+    // The states map is keyed on stable content, so its job reference can lag
+    // a poll; re-read the job for live transfer progress.
+    const stated = state?.job;
+    const job = stated
+      ? props.orbit.jobs.find((j) => j.id === stated.id) ?? stated
+      : undefined;
     return {
       key: g.id,
       label: g.title,

@@ -6,7 +6,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { bytes, formatLabel, type Game, type Job, type Storage } from "../types";
 import { formatNumber, placeName, t, tn } from "../i18n";
-import { jobActions, progressOf, statusLabels, type DownloadView, type JobAction, type JobCommand } from "../jobs";
+import { jobActions, progressOf, statusLabels, transferTiming, type DownloadView, type JobAction, type JobCommand } from "../jobs";
 import { Glyph, type GlyphName } from "./Glyph";
 import { PnGroup, PnTile } from "./PanoramaParts";
 import { firstEnabled, menuKeys } from "./menuKeys";
@@ -151,14 +151,7 @@ export function PanoramaDownloads({
     const { extracting, done, total, percent } = progressOf(job);
     const status = t(statusLabels[job.status] || job.status);
     const lost = !drive && job.status !== "complete";
-    const timing =
-      job.status === "retrying"
-        ? Math.ceil(job.retryAt - Date.now() / 1000) > 0
-          ? t("Retrying in {seconds} s", { seconds: Math.ceil(job.retryAt - Date.now() / 1000) })
-          : t("Waiting to retry…")
-        : job.speed > 0
-          ? t("{speed}/s · {minutes} min remaining", { speed: bytes(job.speed), minutes: Math.ceil((total - done) / job.speed / 60) })
-          : "";
+    const timing = transferTiming(job, done, total);
     const percentText = formatNumber(percent / 100, { style: "percent", maximumFractionDigits: 0 });
     const sub =
       job.status === "complete"

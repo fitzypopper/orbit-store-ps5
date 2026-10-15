@@ -5,7 +5,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { bytes, formatLabel, type Game, type Job, type Storage } from "../types";
 import { formatNumber, placeName, t, tn } from "../i18n";
 import { Artwork } from "../Artwork";
-import { jobActions, progressOf, statusLabels, type DownloadView, type JobAction, type JobCommand } from "../jobs";
+import { jobActions, progressOf, statusLabels, transferTiming, type DownloadView, type JobAction, type JobCommand } from "../jobs";
 import { CrossbarList, type XbRow } from "./CrossbarList";
 import { Glyph, type GlyphName } from "./Glyph";
 import { Ring } from "./Ring";
@@ -90,19 +90,11 @@ export function CrossbarDownloads({
     const drive = drives.find((d) => d.id === job.storageId);
     const title = game?.title || job.title || job.filename;
     const { extracting, done, total, percent } = progressOf(job);
-    const seconds = Math.max(0, Math.ceil(job.retryAt - Date.now() / 1000));
     const actions = jobActions(job, { busy: !!busy, drives, queued });
     const status = t(statusLabels[job.status] || job.status);
     const verified = job.verification === "sha256" ? t("SHA-256 verified") : t("Size verified");
     const lost = !drive && job.status !== "complete";
-    const timing =
-      job.status === "retrying"
-        ? seconds > 0
-          ? t("Retrying in {seconds} s", { seconds })
-          : t("Waiting to retry…")
-        : job.speed > 0
-          ? t("{speed}/s · {minutes} min remaining", { speed: bytes(job.speed), minutes: Math.ceil((total - done) / job.speed / 60) })
-          : "";
+    const timing = transferTiming(job, done, total);
     // The focused card's first line, as in Store's row: where it comes from, or why it stopped.
     const meta =
       job.status === "complete"

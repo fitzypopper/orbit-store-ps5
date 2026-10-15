@@ -4,7 +4,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { bytes, formatLabel, type Game, type Job, type Storage } from "../types";
 import { formatNumber, placeName, t } from "../i18n";
-import { downloadViews, jobActions, progressOf, statusLabels, type DownloadView, type JobCommand } from "../jobs";
+import { downloadViews, jobActions, progressOf, statusLabels, transferTiming, type DownloadView, type JobCommand } from "../jobs";
 import { CinemaArt, CinemaCollections, CinemaMore, CinemaStage, CinemaStrip, type CinemaFrame } from "./CinemaParts";
 import { Glyph, type GlyphName } from "./Glyph";
 
@@ -120,7 +120,6 @@ export function CinemaDownloads({
   const title = game?.title || job.title || job.filename;
   const drive = drives.find((d) => d.id === job.storageId);
   const { extracting, done, total, percent } = progressOf(job);
-  const seconds = Math.max(0, Math.ceil(job.retryAt - Date.now() / 1000));
   // The gold line says what the stage shows, as the design does for each state.
   const kicker = (
     job.status === "complete"
@@ -185,16 +184,12 @@ export function CinemaDownloads({
                 {extracting && `${t("Extracting")} · `}
                 {bytes(done)} / {bytes(total)}
                 {" · "}
-                {job.status === "retrying"
-                  ? seconds > 0
-                    ? t("Retrying in {seconds} s", { seconds })
-                    : t("Waiting to retry…")
-                  : job.speed > 0
-                    ? t("{speed}/s · {minutes} min remaining", {
-                        speed: bytes(job.speed),
-                        minutes: Math.ceil((total - done) / job.speed / 60),
-                      })
-                    : t("{size} remaining", { size: bytes(Math.max(0, job.total - job.received)) })}
+                {transferTiming(
+                  job,
+                  done,
+                  total,
+                  t("{size} remaining", { size: bytes(Math.max(0, job.total - job.received)) }),
+                )}
               </span>
             </p>
             <progress className="cn-bar" max="100" value={percent} aria-label={t("{title} progress", { title })} />

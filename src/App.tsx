@@ -9,6 +9,7 @@ import { Library } from "./Library";
 import { useLibrary } from "./useLibrary";
 import { StorageOverview } from "./LibraryActions";
 import { gameState } from "./collection";
+import { running } from "./jobs";
 import { Select } from "./Select";
 import { BrowserNotice } from "./BrowserNotice";
 import { UpdateNotice } from "./UpdateNotice";
@@ -142,6 +143,24 @@ export default function App() {
     !!orbit.system?.paired,
     tab === "Library" || storageOpen || settingsPage === "storage",
   );
+  // Transfer ticks change the jobs snapshot's identity, which used to rebuild
+  // this map for the whole catalogue and re-render every rail every two seconds
+  // while a download ran. Key it on the fields gameState and its callers read:
+  // received/speed/ETA changes alone leave the map (and rail memos) untouched.
+  const collectionStatesKey =
+    orbit.jobs
+      .map(
+        (j) =>
+          `${j.id}|${j.releaseId}|${j.titleId}|${j.format}|${j.filename}|${j.total}|${j.status}`,
+      )
+      .join("\n") +
+    "\n\u0000\n" +
+    (library.stale ? [] : (library.snapshot?.games || []))
+      .map(
+        (g) =>
+          `${g.titleId}|${g.title}|${g.platform}|${g.onDrive}|${g.installed}|${g.format}|${g.path}|${g.sizeBytes}`,
+      )
+      .join("\n");
   const collectionStates = useMemo(
     () =>
       new Map(
@@ -154,7 +173,9 @@ export default function App() {
           ),
         ]),
       ),
-    [orbit.games, orbit.jobs, library.snapshot?.games, library.stale],
+    // The key carries the content identity of both arrays; only their
+    // volatile transfer fields are absent, and nothing here reads those.
+    [orbit.games, collectionStatesKey],
   );
   const [filters, setFilters] = useState<BrowseFilters>(defaultFilters);
   // The other interfaces' designs show the filters open under "Filters and sort".
@@ -236,9 +257,7 @@ export default function App() {
     [orbit.games],
   );
   const newlyAdded = useMemo(() => newlyAddedGames(orbit.games), [orbit.games]);
-  const active = orbit.jobs.filter((j) =>
-    ["queued", "downloading", "retrying", "verifying", "inspecting", "extracting"].includes(j.status),
-  ).length;
+  const active = orbit.jobs.filter(running).length;
   // Start with the first rail so the hero and highlighted tile agree.
   const focused =
     orbit.games.find((g) => g.id === focusedId) ||

@@ -1,6 +1,7 @@
 // What a download is doing and what can be done with it, shared by every
 // layout of Downloads (Store's list and the other interfaces' views).
-import type { Job, Storage } from "./types";
+import { t } from "./i18n";
+import { bytes, type Job, type Storage } from "./types";
 
 export const statusLabels: Record<Job["status"], string> = {
   queued: /* i18n */ "Queued",
@@ -32,6 +33,22 @@ export function progressOf(job: Job) {
   const done = extracting ? job.extracted || 0 : job.received;
   const total = extracting ? job.extractTotal || 0 : job.total;
   return { extracting, done, total, percent: total > 0 ? Math.min(100, Math.max(0, (100 * done) / total)) : 0 };
+}
+
+// Retry countdown or live speed with ETA — one definition instead of a copy
+// per Downloads layout. `fallback` fills the sentence when neither applies
+// (the layouts differ: some show a remainder, some a verification note).
+export function transferTiming(job: Job, done: number, total: number, fallback = ""): string {
+  if (job.status === "retrying") {
+    const seconds = Math.max(0, Math.ceil(job.retryAt - Date.now() / 1000));
+    return seconds > 0 ? t("Retrying in {seconds} s", { seconds }) : t("Waiting to retry…");
+  }
+  if (job.speed > 0)
+    return t("{speed}/s · {minutes} min remaining", {
+      speed: bytes(job.speed),
+      minutes: Math.ceil((total - done) / job.speed / 60),
+    });
+  return fallback;
 }
 
 export type JobCommand =
