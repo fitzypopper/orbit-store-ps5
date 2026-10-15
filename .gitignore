@@ -1,12 +1,42 @@
-.DS_Store
-*.elf
-*.part
-*.rar
-*.7z
-*.ffpfsc
-*.exfat
-.env*
+# Dependencies
 node_modules/
 .venv/
-.state/
-/CATALOGUE.md
+.deps/
+
+# Build outputs
+build/
+dist/
+app/dist/
+*.elf
+*.ffpkg
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Cache
+.cache/
+.parcel-cache/
+.vite/
