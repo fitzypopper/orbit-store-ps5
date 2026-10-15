@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Icon, Modal } from "./components";
-import { ProgressBar, StatusBadge } from "./components/ui";
+import { Button, ProgressBar, Sparkline, StatusBadge } from "./components/ui";
 import { Artwork } from "./Artwork";
 import {
   bytes,
@@ -148,6 +148,18 @@ export function Downloads({
   const [message, setMessage] = useState("");
   const [passwordJob, setPasswordJob] = useState<Job | null>(null);
   const [archivePassword, setArchivePassword] = useState("");
+  // Speed history for sparklines (max 30 points = ~60s at 2s poll)
+  const speedHistory = useRef<Map<string, number[]>>(new Map());
+  useEffect(() => {
+    const next = new Map<string, number[]>();
+    for (const job of jobs) {
+      if (job.speed > 0 && running(job)) {
+        const prev = speedHistory.current.get(job.id) || [];
+        next.set(job.id, [...prev.slice(-29), job.speed]);
+      }
+    }
+    speedHistory.current = next;
+  }, [jobs]);
   async function retryExtraction() {
     if (!passwordJob || !archivePassword) return;
     setBusy(passwordJob.id); setError("");
@@ -619,6 +631,15 @@ export function Downloads({
                       })}
                     </span>
                     <span>
+                      {speedHistory.current.get(j.id) && (
+                        <Sparkline
+                          data={speedHistory.current.get(j.id)!}
+                          color={j.speed > 0 ? tokens.color.status.info : tokens.color.text.quaternary}
+                          width={100}
+                          height={18}
+                          style={{ marginRight: tokens.space.inline }}
+                        />
+                      )}
                       {transferTiming(
                         j,
                         done,
@@ -703,20 +724,26 @@ export function Downloads({
                         role="group"
                         aria-label={t("Queue position for {title}", { title })}
                       >
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           disabled={!!busy || position <= 0}
                           aria-label={t("Move {title} up", { title })}
                           onClick={() => void run(j, "move-up")}
                         >
-                          {t("↑ Move up")}
-                        </button>
-                        <button
+                          <Icon name="chevron" />
+                          {t("Move up")}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           disabled={!!busy || position === queued.length - 1}
                           aria-label={t("Move {title} down", { title })}
                           onClick={() => void run(j, "move-down")}
                         >
-                          {t("↓ Move down")}
-                        </button>
+                          {t("Move down")}
+                          <Icon name="chevron" />
+                        </Button>
                       </div>
                     )}
                     {inactive(j) &&

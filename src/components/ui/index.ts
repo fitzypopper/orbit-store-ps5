@@ -18,6 +18,9 @@ export type { InputProps, SelectProps, TextareaProps } from './Input';
 export { ProgressBar, CircularProgress } from './Progress';
 export type { ProgressBarProps, CircularProgressProps } from './Progress';
 
+export { Sparkline } from './Sparkline';
+export type { SparklineProps } from './Sparkline';
+
 export { Badge, PlatformBadge, StatusBadge } from './Badge';
 export type { BadgeProps } from './Badge';
 
