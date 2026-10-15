@@ -1939,6 +1939,24 @@ html:not(.pointer) .cn-sheet .cn-about:focus {
   flex-direction: column;
   align-items: flex-start;
 }
+.settings-search {
+  margin-bottom: 0.6rem;
+}
+.settings-search input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+html:not(.pointer) .settings-search input:focus {
+  box-shadow: none;
+}
+html.pointer .settings-search input:hover {
+  background: none;
+}
 .settings-group-label {
   margin: 0 0 0.4rem;
   font-size: 0.66rem;

@@ -10,6 +10,14 @@ import type { AutoStart as Status, System } from "./types";
 import { t, tn } from "./i18n";
 import { Appearance } from "./interfaces/Appearance";
 import { LanguageSetting } from "./LanguageSetting";
+import { matchesSettings, settingsEntry, type SettingsSection } from "./settingsMeta";
+
+// A shortcut to one of the dialogs the page keeps outside this panel.
+export interface SettingsShortcut {
+  id: SettingsSection;
+  label: string;
+  open: () => void;
+}
 function Row({
   title,
   action,
@@ -282,16 +290,21 @@ export function StartAutomatically({ auto }: { auto: AutoStartModel }) {
 export function AutoStart({
   system,
   close,
-  children,
+  shortcuts = [],
   initialSection,
 }: {
   system: System | null;
   close: () => void;
-  children?: ReactNode;
+  shortcuts?: SettingsShortcut[];
   initialSection?: "debrid";
 }) {
   const auto = useAutoStart();
   const [stopped, setStopped] = useState(false);
+  // Searching narrows the stacked panels; an update in progress pins the list
+  // to Updates, so the search field itself goes away with the others.
+  const [query, setQuery] = useState("");
+  const filtering = !stopped && !!query.trim();
+  const show = (id: SettingsSection) => !filtering || matchesSettings(query, settingsEntry(id));
   useEffect(() => {
     if (initialSection !== "debrid") return;
     const frame = requestAnimationFrame(() => {
@@ -304,25 +317,62 @@ export function AutoStart({
   return (
     <Modal title={t("App settings")} close={close}>
       <h1>{t("App settings")}</h1>
-      {initialSection === "debrid" && !stopped && <Debrid />}
-      {children}
-      <Appearance />
-      <LanguageSetting />
-      <Updates onStopped={() => setStopped(true)} />
+      {!stopped && (
+        <label className="search-field settings-search">
+          <Icon name="search" />
+          <input
+            type="search"
+            placeholder={t("Search settings")}
+            aria-label={t("Search settings")}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
+      )}
+      {show("appearance") && <Appearance />}
+      {show("language") && <LanguageSetting />}
+      {show("updates") && <Updates onStopped={() => setStopped(true)} />}
       {!stopped && (
         <>
-          <TvApp />
-          {initialSection !== "debrid" && <Debrid />}
-          <CatalogueUpdates />
-          <Diagnostics />
-          <PayloadManagers system={system} auto={auto} />
-          <StartAutomatically auto={auto} />
-          {auto.error && (
-            <p className="form-error" role="alert">
-              {auto.error}
-            </p>
+          {show("tvapp") && <TvApp />}
+          {initialSection !== "debrid" && show("torbox") && <Debrid />}
+          {show("catalogue") && <CatalogueUpdates />}
+          {show("diagnostics") && <Diagnostics />}
+          {show("payload") && (
+            <>
+              <PayloadManagers system={system} auto={auto} />
+              {auto.error && (
+                <p className="form-error" role="alert">
+                  {auto.error}
+                </p>
+              )}
+            </>
+          )}
+          {show("autostart") && (
+            <>
+              <StartAutomatically auto={auto} />
+              {!auto.status?.available && auto.status && (
+                <p className="notice">{t("Manager integration is set up from Orbit on your PS5.")}</p>
+              )}
+              {auto.error && (
+                <p className="form-error" role="alert">
+                  {auto.error}
+                </p>
+              )}
+            </>
           )}
         </>
+      )}
+      {filtering && shortcuts.length && (
+        <div className="settings-shortcuts">
+          {shortcuts
+            .filter((s) => matchesSettings(query, settingsEntry(s.id)))
+            .map((s) => (
+              <button key={s.id} onClick={s.open}>
+                {s.label}
+              </button>
+            ))}
+        </div>
       )}
     </Modal>
   );

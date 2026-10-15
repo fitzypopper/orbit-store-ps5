@@ -35,6 +35,7 @@ import { InterfaceNotice } from "./interfaces/InterfaceNotice";
 import { FavoriteNotice } from "./FavoriteNotice";
 import { InterfaceShell } from "./interfaces/Shell";
 import { SettingsPage, type SettingsSection } from "./interfaces/SettingsPage";
+import { SettingsShortcut } from "./AutoStart";
 import { readInterfacePrefs } from "./interfaces/choice";
 import { Glyph } from "./interfaces/Glyph";
 export default function App() {
@@ -1091,34 +1092,16 @@ export default function App() {
         </Modal>
       )}
       {autoOpen && (
-        <AutoStart system={orbit.system} close={() => closeSettings()} initialSection={settingsSection}>
-          <div className="settings-shortcuts">
-            <button
-              onClick={() => {
-                closeSettings(false);
-                setPairOpen(true);
-              }}
-            >
-              {t("Pair devices")}
-            </button>
-            <button
-              onClick={() => {
-                closeSettings(false);
-                setSourcesOpen(true);
-              }}
-            >
-              {t("Sources")}
-            </button>
-            <button
-              onClick={() => {
-                closeSettings(false);
-                setStorageOpen(true);
-              }}
-            >
-              {t("Storage")}
-            </button>
-          </div>
-        </AutoStart>
+        <AutoStart
+          system={orbit.system}
+          close={() => closeSettings()}
+          initialSection={settingsSection}
+          shortcuts={[
+            { id: "pair", label: t("Pair devices"), open: () => { closeSettings(false); setPairOpen(true); } },
+            { id: "sources", label: t("Sources"), open: () => { closeSettings(false); setSourcesOpen(true); } },
+            { id: "storage", label: t("Storage"), open: () => { closeSettings(false); setStorageOpen(true); } },
+          ]}
+        />
       )}
       {sourcesOpen && orbit.sources && (
         <Modal

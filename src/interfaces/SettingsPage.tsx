@@ -13,52 +13,18 @@ import { TvApp } from "../TvApp";
 import { Debrid } from "../Debrid";
 import { Diagnostics } from "../Diagnostics";
 import { PayloadManagers, StartAutomatically, useAutoStart } from "../AutoStart";
-import { Glyph, type GlyphName } from "./Glyph";
+import { Icon } from "../components";
+import { Glyph } from "./Glyph";
+import {
+  matchesSettings,
+  settingsGroups,
+  settingsSections,
+  type SettingsSection,
+} from "../settingsMeta";
 
-export type SettingsSection =
-  | "appearance"
-  | "language"
-  | "sources"
-  | "storage"
-  | "pair"
-  | "catalogue"
-  | "updates"
-  | "tvapp"
-  | "torbox"
-  | "payload"
-  | "autostart"
-  | "diagnostics";
-
-export const settingsGroups: { label: string; sections: { id: SettingsSection; label: string; glyph: GlyphName }[] }[] = [
-  {
-    label: /* i18n */ "On this device",
-    sections: [
-      { id: "appearance", label: /* i18n */ "Appearance", glyph: "palette" },
-      { id: "language", label: /* i18n */ "Language", glyph: "globe" },
-    ],
-  },
-  {
-    label: /* i18n */ "Orbit on your PS5",
-    sections: [
-      { id: "sources", label: /* i18n */ "Download sources", glyph: "cloud" },
-      { id: "storage", label: /* i18n */ "Storage and downloads", glyph: "drive" },
-      { id: "pair", label: /* i18n */ "Pair devices", glyph: "link" },
-      { id: "catalogue", label: /* i18n */ "Game catalogue", glyph: "refresh" },
-      { id: "updates", label: /* i18n */ "Updates", glyph: "update" },
-      { id: "tvapp", label: /* i18n */ "TV app", glyph: "tv" },
-      { id: "torbox", label: "TorBox", glyph: "bolt" },
-    ],
-  },
-  {
-    label: /* i18n */ "Maintenance",
-    sections: [
-      { id: "payload", label: /* i18n */ "Payload managers", glyph: "box" },
-      { id: "autostart", label: /* i18n */ "Start automatically", glyph: "power" },
-      { id: "diagnostics", label: /* i18n */ "Diagnostics", glyph: "bug" },
-    ],
-  },
-];
-export const settingsSections = settingsGroups.flatMap((g) => g.sections);
+// The section list itself lives in settingsMeta, shared with Store's dialog.
+export { settingsGroups, settingsSections };
+export type { SettingsSection };
 
 export function SettingsPage({
   section,
@@ -102,7 +68,19 @@ export function SettingsPage({
   };
   // Stopping Orbit for an update leaves only Updates usable, as in App settings.
   const [stopped, setStopped] = useState(false);
+  const [query, setQuery] = useState("");
+  const visibleGroups = settingsGroups
+    .map((g) => ({ ...g, sections: g.sections.filter((s) => matchesSettings(query, s)) }))
+    .filter((g) => g.sections.length > 0);
+  const visibleKey = visibleGroups.flatMap((g) => g.sections.map((s) => s.id)).join(" ");
   const current = settingsSections.find((s) => s.id === section) || settingsSections[0];
+  // Typing can hide the open section's entry: follow the first match instead
+  // of leaving a nav with nothing marked current.
+  useEffect(() => {
+    if (!query.trim() || !visibleKey) return;
+    const ids = visibleKey.split(" ") as SettingsSection[];
+    if (!ids.includes(current.id)) choose(ids[0]);
+  }, [query, visibleKey, current.id, choose]);
   // Panorama's pivots run off the page: keep the chosen one in view.
   const nav = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -157,7 +135,22 @@ export function SettingsPage({
   return (
     <section className="settings-page" aria-label={t("Settings")}>
       <nav className="settings-sections" ref={nav} aria-label={t("Settings sections")}>
-        {settingsGroups.map((group) => (
+        <label className="search-field settings-search">
+          <Icon name="search" />
+          <input
+            type="search"
+            placeholder={t("Search settings")}
+            aria-label={t("Search settings")}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
+        {visibleGroups.length === 0 && (
+          <p className="notice" role="status">
+            {t("No settings match")}
+          </p>
+        )}
+        {visibleGroups.map((group) => (
           <div className={`settings-group${group.sections.some((s) => s.id === current.id) ? " current" : ""}`} key={group.label}>
             <p className="settings-group-label">{t(group.label)}</p>
             {group.sections.map((s) => (
