@@ -125,7 +125,7 @@ export function Modal({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: tokens.space[4],
+        padding: tokens.spacing[4],
         zIndex: tokens.zIndex.modalOverlay,
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
         backdropFilter: 'blur(4px)',
@@ -162,7 +162,7 @@ export function Modal({
               display: 'flex',
               alignItems: 'flex-start',
               justifyContent: 'space-between',
-              gap: tokens.space[4],
+              gap: tokens.spacing[4],
               padding: `${tokens.spacing.component.modalPadding} ${tokens.spacing.component.modalPadding} 0`,
             }}
           >
@@ -201,7 +201,7 @@ export function Modal({
                 style={{
                   flexShrink: 0,
                   color: tokens.color.text.tertiary,
-                  padding: tokens.space[2],
+                  padding: tokens.spacing[2],
                 }}
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">

@@ -3,17 +3,38 @@
  * Unified export for all design tokens
  */
 
-// Re-export all token modules
+// Re-export all token modules. `spacing` and `typography` both define a
+// `responsive` helper, so those two are re-exported selectively.
 export * from './colors';
-export * from './spacing';
-export * from './typography';
 export * from './motion';
 export * from './misc';
+export {
+  spacing,
+  space,
+  responsive as responsiveSpacing,
+} from './spacing';
+export {
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  letterSpacing,
+  textStyle,
+  responsive as responsiveTypography,
+} from './typography';
 
 // Unified token object for easy consumption
 import { semantic as color, highContrast } from './colors';
 import { spacing, space, responsive as responsiveSpace } from './spacing';
-import { fontFamily, fontSize, fontWeight, lineHeight, letterSpacing, textStyle, responsive as responsiveType } from './typography';
+import {
+  fontFamily,
+  fontSize,
+  fontWeight,
+  lineHeight,
+  letterSpacing,
+  textStyle,
+  responsive as responsiveTypography,
+} from './typography';
 import { duration, easing, keyframes, transition, animation, reducedMotion, componentMotion } from './motion';
 import { radius, shadow, zIndex, breakpoint, mediaQuery, containerQuery } from './misc';
 
@@ -29,7 +50,7 @@ export const tokens = {
   lineHeight,
   letterSpacing,
   textStyle,
-  responsiveType,
+  responsiveTypography,
   duration,
   easing,
   keyframes,

@@ -165,6 +165,14 @@ export const semantic = {
     placeholder: '#a1a1a1',
   },
 
+  // Glass surfaces (for panels over artwork)
+  glass: {
+    background: 'rgba(8, 8, 8, 0.62)',
+    backgroundHover: 'rgba(20, 20, 20, 0.74)',
+    backgroundActive: 'rgba(32, 32, 32, 0.82)',
+    blur: 'blur(18px) saturate(1.3)',
+  },
+
   // Popover/modal
   popover: {
     background: 'rgba(20, 20, 20, 0.9)',

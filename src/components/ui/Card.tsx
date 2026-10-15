@@ -3,7 +3,7 @@
  * Flexible card container with variants for different use cases
  */
 
-import { forwardRef, type HTMLAttributes, type ReactNode } from 'react';
+import { forwardRef, type HTMLAttributes } from 'react';
 import { tokens } from '../../tokens';
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
@@ -11,7 +11,6 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   padding?: 'none' | 'sm' | 'md' | 'lg';
   hoverable?: boolean;
   focusable?: boolean;
-  asChild?: boolean;
 }
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(
@@ -21,13 +20,11 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       padding = 'md',
       hoverable = false,
       focusable = false,
-      asChild = false,
       children,
       className = '',
       style,
       onClick,
       onKeyDown,
-      tabIndex,
       ...props
     },
     ref,
@@ -53,7 +50,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         border: 'none',
       },
       glass: {
-        backgroundColor: tokens.color.glass.light,
+        backgroundColor: tokens.color.glass.background,
         backdropFilter: tokens.color.glass.blur,
         WebkitBackdropFilter: tokens.color.glass.blur,
         border: `1px solid ${tokens.color.border.subtle}`,
@@ -78,39 +75,12 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       lg: { padding: tokens.spacing.component.cardPaddingLg },
     };
 
-    // Hover/focus states for interactive cards
-    const interactiveStyles: React.CSSProperties = (hoverable || isInteractive)
-      ? {
-          '&:hover': {
-            boxShadow: tokens.shadow.cardHover,
-            transform: 'translateY(-2px)',
-          },
-          '&:focus-visible': {
-            outline: 'none',
-            boxShadow: tokens.shadow.cardFocus,
-          },
-        }
-      : {};
-
     const combinedStyles: React.CSSProperties = {
       ...baseStyles,
       ...variantStyles[variant],
       ...paddingStyles[padding],
       ...style,
     };
-
-    // Render as child component (for composition with Link, etc.)
-    if (asChild && typeof children === 'function') {
-      return children({
-        ref,
-        style: combinedStyles,
-        className,
-        tabIndex: isInteractive ? 0 : undefined,
-        onClick,
-        onKeyDown,
-        ...props,
-      });
-    }
 
     return (
       <div
@@ -121,7 +91,6 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
         onClick={onClick}
         onKeyDown={onKeyDown}
         role={onClick ? 'button' : undefined}
-        aria-disabled={props.disabled}
         {...props}
       >
         {children}
