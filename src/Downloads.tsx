@@ -597,6 +597,11 @@ export function Downloads({
                   <div className="queue-title">
                     <h2>{title}</h2>
                     <StatusBadge status={j.status} label={t(statusLabels[j.status] || j.status)} />
+                    {waiting(j) && position >= 0 && (
+                      <span className="queue-position-badge" aria-label={t("Queue position {position}", { position: position + 1 })}>
+                        #{position + 1}
+                      </span>
+                    )}
                   </div>
                   <p>
                     {r && `${r.provider} · ${formatLabel(r)} · `}

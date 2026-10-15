@@ -1439,6 +1439,21 @@ html.pointer .queue-row:hover,
   padding: 0.45rem 1.1rem;
   font-size: 0.8rem;
 }
+.queue-position-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.8rem;
+  height: 1.4rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: var(--field);
+  box-shadow: var(--field-edge);
+  color: var(--text-2);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
 
 /* Phones and narrow windows */
 @media (max-width: 1100px) {

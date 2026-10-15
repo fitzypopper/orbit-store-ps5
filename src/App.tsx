@@ -3,6 +3,7 @@ import { useOrbit } from "./useOrbit";
 import { useController } from "./controller";
 import { Backdrop, GameTile, Icon, Modal, StorageRows } from "./components";
 import { GameRail, type RailMemory } from "./GameRail";
+import { VirtualizedBrowseGrid } from "./VirtualizedBrowseGrid";
 import { Details } from "./Details";
 import { Downloads } from "./Downloads";
 import { Library } from "./Library";
@@ -22,7 +23,7 @@ import { Sources } from "./Sources";
 import { Pairing } from "./Pairing";
 import type { Game, LibraryTarget } from "./types";
 import { browseGames, newlyAddedGames, defaultFilters, CATALOG_STEP, type BrowseFilters } from "./browse";
-import { useInfiniteList } from "./infiniteList";
+
 import {
   parseBrowserHandoff,
   handoffGame,
@@ -228,8 +229,6 @@ export default function App() {
     () => browseGames(orbit.games, filters, favorites),
     [orbit.games, filters, favorites],
   );
-  const browseList = useInfiniteList(filtered.length, CATALOG_STEP, filters);
-  const visibleGames = filtered.slice(0, browseList.visible);
   const discoverGames = useMemo(
     () =>
       browseGames(
@@ -239,8 +238,9 @@ export default function App() {
       ),
     [orbit.games],
   );
-  const discoverList = useInfiniteList(discoverGames.length, CATALOG_STEP);
-  const discoverVisible = discoverGames.slice(0, discoverList.visible);
+  const discoverVisible = discoverGames;
+  const newlyAdded = useMemo(() => newlyAddedGames(orbit.games), [orbit.games]);
+  const active = orbit.jobs.filter(running).length;
   const latestGames = useMemo(
     () =>
       orbit.games
@@ -257,8 +257,6 @@ export default function App() {
         .slice(0, 20),
     [orbit.games],
   );
-  const newlyAdded = useMemo(() => newlyAddedGames(orbit.games), [orbit.games]);
-  const active = orbit.jobs.filter(running).length;
   // Start with the first rail so the hero and highlighted tile agree.
   const focused =
     orbit.games.find((g) => g.id === focusedId) ||
@@ -991,19 +989,14 @@ export default function App() {
                     {tn(discoverGames.length, "{count} game", "{count} games")}
                   </span>
                 </div>
-                <div className="browse-grid discover-grid" data-row="all">
-                  {discoverVisible.map((g) => (
-                    <GameTile
-                      key={g.id}
-                      game={g}
-                      status={collectionStates.get(g.id)?.label}
-                      favorite={favorites.has(g.id)}
-                      open={open}
-                      onFocus={setFocusedId}
-                    />
-                  ))}
-                </div>
-                <div ref={discoverList.end} aria-hidden="true" />
+                <VirtualizedBrowseGrid
+                  games={discoverVisible}
+                  states={collectionStates}
+                  favorites={favorites}
+                  open={open}
+                  onFocus={setFocusedId}
+                  dataRow="all"
+                />
               </section>
             </>
           ) : (
@@ -1026,18 +1019,15 @@ export default function App() {
                   className="game-rail browse-grid"
                   data-row="browse"
                 >
-                  {visibleGames.map((g, index) => (
-                    <GameTile
-                      key={g.id}
-                      game={g}
-                      status={collectionStates.get(g.id)?.label}
-                      favorite={favorites.has(g.id)}
-                      priority={index < firstCovers}
-                      open={open}
-                    />
-                  ))}
+                  <VirtualizedBrowseGrid
+                    games={filtered}
+                    states={collectionStates}
+                    favorites={favorites}
+                    open={open}
+                    firstCovers={firstCovers}
+                    dataRow="browse"
+                  />
                 </div>
-                <div ref={browseList.end} aria-hidden="true" />
               </>
             ) : (
               browseEmptyNode

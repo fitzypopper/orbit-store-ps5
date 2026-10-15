@@ -26,8 +26,8 @@ export function useInfiniteList(total: number, step: number, reset: unknown = nu
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(check);
     };
-    window.addEventListener("scroll", schedule, { capture: true, passive: true });
-    window.addEventListener("resize", schedule, { passive: true });
+    window.addEventListener("scroll", schedule, { capture: true, passive: true } as AddEventListenerOptions);
+    window.addEventListener("resize", schedule, { passive: true } as AddEventListenerOptions);
     schedule();
     return () => {
       cancelAnimationFrame(frame);
