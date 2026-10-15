@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Icon, Modal } from "./components";
+import { ProgressBar, StatusBadge } from "./components/ui";
 import { Artwork } from "./Artwork";
 import {
   bytes,
@@ -22,6 +23,98 @@ import {
   waiting,
   type DownloadView,
 } from "./jobs";
+import { tokens } from "./tokens";
+
+// Pipeline stages: queued → downloading → verifying → inspecting → extracting → complete
+const PIPELINE_STAGES: Array<{ id: Job["status"]; label: string }> = [
+  { id: "queued", label: /* i18n */ "Queued" },
+  { id: "downloading", label: /* i18n */ "Downloading" },
+  { id: "verifying", label: /* i18n */ "Verifying" },
+  { id: "inspecting", label: /* i18n */ "Inspecting" },
+  { id: "extracting", label: /* i18n */ "Extracting" },
+  { id: "complete", label: /* i18n */ "Complete" },
+];
+
+function PipelineStages({
+  status,
+  extracting,
+  deliveryPhase,
+}: {
+  status: Job["status"];
+  extracting: boolean;
+  deliveryPhase?: string;
+}) {
+  const idx = PIPELINE_STAGES.findIndex((s) => s.id === status);
+  const activeIdx = extracting ? 4 : idx; // extracting replaces verifying/inspecting visually
+  return (
+    <div
+      className="pipeline-stages"
+      role="list"
+      aria-label={t("Download stages")}
+      style={{
+        display: "flex",
+        gap: tokens.space.inline,
+        marginBottom: tokens.space.inline,
+        overflowX: "auto",
+      }}
+    >
+      {PIPELINE_STAGES.map((stage, i) => {
+        const isDone = i < activeIdx;
+        const isCurrent = i === activeIdx;
+        const isError = status === "error" && i <= idx;
+        const isCancelled = status === "cancelled" && i <= idx;
+        return (
+          <div
+            key={stage.id}
+            className={`pipeline-stage ${isDone ? "done" : ""} ${isCurrent ? "current" : ""} ${isError ? "error" : ""} ${isCancelled ? "cancelled" : ""}`}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "2px",
+              minWidth: "60px",
+              flex: "1 0 auto",
+            }}
+          >
+            <div
+              style={{
+                width: "24px",
+                height: "24px",
+                borderRadius: "50%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: isCurrent || isError || isCancelled ? `2px solid ${tokens.color.text.primary}` : "2px solid transparent",
+                backgroundColor: isDone
+                  ? tokens.color.status.success
+                  : isCurrent || isError || isCancelled
+                    ? tokens.color.background.primary
+                    : "rgba(255,255,255,0.12)",
+                color: isDone ? tokens.color.status.successText : tokens.color.text.tertiary,
+                fontSize: tokens.fontSize.caption.xs,
+                fontWeight: tokens.fontWeight.semiBold,
+                transition: "all 200ms ease",
+              }}
+            >
+              {isDone && <Icon name="check" />}
+            </div>
+            <span
+              style={{
+                fontSize: tokens.fontSize.caption.xs,
+                color: isCurrent ? tokens.color.text.primary : tokens.color.text.quaternary,
+                whiteSpace: "nowrap",
+                fontWeight: isCurrent ? tokens.fontWeight.medium : tokens.fontWeight.normal,
+              }}
+            >
+              {t(stage.label)}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export function Downloads({
   jobs,
   games,
@@ -491,10 +584,7 @@ export function Downloads({
                 <div className="queue-info">
                   <div className="queue-title">
                     <h2>{title}</h2>
-                    <span className={`status ${j.status}`}>
-                      {j.status === "complete" && <Icon name="check" />}{" "}
-                      {t(statusLabels[j.status] || j.status)}
-                    </span>
+                    <StatusBadge status={j.status} label={t(statusLabels[j.status] || j.status)} />
                   </div>
                   <p>
                     {r && `${r.provider} · ${formatLabel(r)} · `}
@@ -504,9 +594,18 @@ export function Downloads({
                       ? ` · ${t("Reconnect this drive")}`
                       : ""}
                   </p>
-                  <progress
-                    max="100"
+                  <PipelineStages
+                    status={j.status}
+                    extracting={extracting}
+                    deliveryPhase={j.deliveryPhase}
+                  />
+                  <ProgressBar
                     value={percent}
+                    max={100}
+                    label
+                    status={extracting ? t("Extracting") : undefined}
+                    color={j.status === "error" ? "error" : j.status === "complete" ? "success" : "default"}
+                    size="md"
                     aria-label={t("{title} progress", { title })}
                   />
                   <div className="transfer-meta">
